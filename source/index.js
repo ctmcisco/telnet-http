@@ -6,10 +6,29 @@ const pify = require("pify");
 const chalk = require("chalk");
 const ValidationSchema = require("validate");
 
+// const SHELL_PROMPT = "/ # ";
+
 const argv = minimist(process.argv.slice(2));
 
 async function connect(config) {
+    const connection = config.connection = new TelnetClient();
+    const params = {
+        host: config.host,
+        port: config.port,
+        // shellPrompt: SHELL_PROMPT,
+        negotiationMandatory: false,
+        timeout: config.timeout
+    };
+    await connection.connect();
+}
 
+async function disconnect(config) {
+    await config.connection.end();
+}
+
+async function execute(config, command) {
+    const result = await config.connection.exec(command);
+    return result;
 }
 
 function logBase(type, args) {
@@ -81,7 +100,7 @@ function validateConfig(config) {
         errors.forEach(err => {
             logError(` - ${err.message} ${chalk.dim(`@ ${err.path}`)}`);
         });
-        throw new Error("Invalid initiation configuration");
+        throw new Error("Invalid initialisation configuration");
     }
 }
 
